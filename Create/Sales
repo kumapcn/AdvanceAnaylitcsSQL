@@ -1,0 +1,30 @@
+USE WindowFunctionsPortfolio;
+GO
+
+/* SALES SCENARIO 1: Top customer in each region */
+WITH customer_sales AS (
+    SELECT customer_id, region, SUM(sales_amount) AS total_sales
+    FROM Sales
+    GROUP BY customer_id, region
+), ranked AS (
+    SELECT *, ROW_NUMBER() OVER (
+        PARTITION BY region ORDER BY total_sales DESC, customer_id
+    ) AS rn
+    FROM customer_sales
+)
+SELECT * FROM ranked WHERE rn = 1;
+
+/* SALES SCENARIO 2: Above-region-average transaction */
+WITH x AS (
+    SELECT *, AVG(sales_amount) OVER (PARTITION BY region) AS region_avg
+    FROM Sales
+)
+SELECT * FROM x WHERE sales_amount > region_avg;
+
+/* SALES SCENARIO 3: Running sales by customer */
+SELECT customer_id, sale_date, sale_id, sales_amount,
+       SUM(sales_amount) OVER (
+           PARTITION BY customer_id ORDER BY sale_date, sale_id
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS customer_running_sales
+FROM Sales;
