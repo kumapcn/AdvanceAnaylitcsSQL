@@ -1,0 +1,25 @@
+USE WindowFunctionsPortfolio;
+GO
+
+/* Running total: explicit frame */
+SELECT sale_date, sale_id, sales_amount,
+       SUM(sales_amount) OVER (
+           ORDER BY sale_date, sale_id
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS running_total
+FROM Sales;
+
+/* 3-row moving average */
+SELECT sale_date, sale_id, sales_amount,
+       AVG(sales_amount) OVER (
+           ORDER BY sale_date, sale_id
+           ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+       ) AS moving_avg_3_rows
+FROM Sales;
+
+/* First value in each department */
+SELECT emp_name, department, salary,
+       FIRST_VALUE(salary) OVER (
+           PARTITION BY department ORDER BY salary DESC, emp_id
+       ) AS highest_salary_in_department
+FROM Employees;
