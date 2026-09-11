@@ -1,0 +1,36 @@
+USE WindowFunctionsPortfolio;
+GO
+
+/* BANKING SCENARIO 1: Latest transaction for every customer */
+WITH ranked AS (
+    SELECT t.*, ROW_NUMBER() OVER (
+        PARTITION BY customer_id
+        ORDER BY transaction_date DESC, transaction_id DESC
+    ) AS rn
+    FROM Transactions t
+)
+SELECT *
+FROM ranked
+WHERE rn = 1;
+
+/* BANKING SCENARIO 2: Running balance for every account */
+SELECT account_id, transaction_date, transaction_type, amount,
+       SUM(amount) OVER (
+           PARTITION BY account_id
+           ORDER BY transaction_date, transaction_id
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS running_balance
+FROM Transactions;
+
+/* BANKING SCENARIO 3: Identify gaps > 10 days between transactions */
+WITH x AS (
+    SELECT *, LAG(transaction_date) OVER (
+        PARTITION BY account_id ORDER BY transaction_date, transaction_id
+    ) AS previous_transaction_date
+    FROM Transactions
+)
+SELECT account_id, transaction_date, previous_transaction_date,
+       DATEDIFF(DAY, previous_transaction_date, transaction_date) AS gap_days
+FROM x
+WHERE previous_transaction_date IS NOT NULL
+  AND DATEDIFF(DAY, previous_transaction_date, transaction_date) > 10;
