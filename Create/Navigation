@@ -1,0 +1,38 @@
+USE WindowFunctionsPortfolio;
+GO
+
+/* 1. Previous transaction amount */
+SELECT account_id, transaction_date, transaction_id, amount,
+       LAG(amount) OVER (
+           PARTITION BY account_id
+           ORDER BY transaction_date, transaction_id
+       ) AS previous_amount
+FROM Transactions;
+
+/* 2. Next transaction amount */
+SELECT account_id, transaction_date, transaction_id, amount,
+       LEAD(amount) OVER (
+           PARTITION BY account_id
+           ORDER BY transaction_date, transaction_id
+       ) AS next_amount
+FROM Transactions;
+
+/* 3. Transaction-to-transaction change */
+WITH x AS (
+    SELECT *,
+           LAG(amount) OVER (
+               PARTITION BY account_id ORDER BY transaction_date, transaction_id
+           ) AS previous_amount
+    FROM Transactions
+)
+SELECT account_id, transaction_date, amount, previous_amount,
+       amount - previous_amount AS amount_change,
+       100.0 * (amount - previous_amount) / NULLIF(previous_amount, 0) AS pct_change
+FROM x;
+
+/* 4. Previous admission for each patient */
+SELECT patient_id, admission_id, admission_date,
+       LAG(admission_date) OVER (
+           PARTITION BY patient_id ORDER BY admission_date, admission_id
+       ) AS previous_admission_date
+FROM Admissions;
