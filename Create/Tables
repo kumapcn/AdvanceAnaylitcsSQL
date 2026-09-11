@@ -1,0 +1,62 @@
+/* ============================================================
+   SQL Window Functions Project - Schema
+   Dialect: Microsoft SQL Server / T-SQL
+   ============================================================ */
+
+IF DB_ID('WindowFunctionsPortfolio') IS NULL
+    CREATE DATABASE WindowFunctionsPortfolio;
+GO
+
+USE WindowFunctionsPortfolio;
+GO
+
+DROP TABLE IF EXISTS Transactions;
+DROP TABLE IF EXISTS Sales;
+DROP TABLE IF EXISTS Admissions;
+DROP TABLE IF EXISTS Employees;
+DROP TABLE IF EXISTS Customers;
+GO
+
+CREATE TABLE Employees (
+    emp_id       INT PRIMARY KEY,
+    emp_name     VARCHAR(100) NOT NULL,
+    department   VARCHAR(50) NOT NULL,
+    salary       DECIMAL(12,2) NOT NULL,
+    hire_date    DATE NOT NULL
+);
+
+CREATE TABLE Customers (
+    customer_id  INT PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    email        VARCHAR(150) NOT NULL,
+    signup_date  DATE NOT NULL
+);
+
+CREATE TABLE Transactions (
+    transaction_id   INT PRIMARY KEY,
+    customer_id      INT NOT NULL,
+    account_id       INT NOT NULL,
+    transaction_date DATE NOT NULL,
+    transaction_type VARCHAR(20) NOT NULL,
+    amount           DECIMAL(12,2) NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+);
+
+CREATE TABLE Sales (
+    sale_id      INT PRIMARY KEY,
+    sale_date    DATE NOT NULL,
+    customer_id  INT NOT NULL,
+    region       VARCHAR(50) NOT NULL,
+    product      VARCHAR(100) NOT NULL,
+    sales_amount DECIMAL(12,2) NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+);
+
+CREATE TABLE Admissions (
+    admission_id   INT PRIMARY KEY,
+    patient_id     INT NOT NULL,
+    admission_date DATE NOT NULL,
+    discharge_date DATE NULL,
+    diagnosis      VARCHAR(100) NOT NULL
+);
+GO
