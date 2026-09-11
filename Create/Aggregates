@@ -1,0 +1,35 @@
+USE WindowFunctionsPortfolio;
+GO
+
+/* 1. Running account balance */
+SELECT account_id, transaction_date, transaction_id, amount,
+       SUM(amount) OVER (
+           PARTITION BY account_id
+           ORDER BY transaction_date, transaction_id
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS running_balance
+FROM Transactions;
+
+/* 2. Running sales by region */
+SELECT region, sale_date, sale_id, sales_amount,
+       SUM(sales_amount) OVER (
+           PARTITION BY region
+           ORDER BY sale_date, sale_id
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS running_region_sales
+FROM Sales;
+
+/* 3. Sales as a percentage of regional total */
+SELECT sale_id, region, sales_amount,
+       100.0 * sales_amount /
+       NULLIF(SUM(sales_amount) OVER (PARTITION BY region), 0) AS pct_of_region_sales
+FROM Sales;
+
+/* 4. Employee salary vs department average */
+WITH x AS (
+    SELECT *, AVG(salary) OVER (PARTITION BY department) AS dept_avg
+    FROM Employees
+)
+SELECT emp_name, department, salary, dept_avg,
+       salary - dept_avg AS variance_from_avg
+FROM x;
