@@ -1,0 +1,34 @@
+USE WindowFunctionsPortfolio;
+GO
+
+/* HEALTHCARE SCENARIO 1: Most recent admission per patient */
+WITH ranked AS (
+    SELECT *, ROW_NUMBER() OVER (
+        PARTITION BY patient_id ORDER BY admission_date DESC, admission_id DESC
+    ) AS rn
+    FROM Admissions
+)
+SELECT * FROM ranked WHERE rn = 1;
+
+/* HEALTHCARE SCENARIO 2: Previous admission and days since previous admission */
+WITH x AS (
+    SELECT *, LAG(admission_date) OVER (
+        PARTITION BY patient_id ORDER BY admission_date, admission_id
+    ) AS previous_admission
+    FROM Admissions
+)
+SELECT patient_id, admission_id, admission_date, previous_admission,
+       DATEDIFF(DAY, previous_admission, admission_date) AS days_since_previous
+FROM x;
+
+/* HEALTHCARE SCENARIO 3: Patients readmitted within 30 days */
+WITH x AS (
+    SELECT *, LAG(admission_date) OVER (
+        PARTITION BY patient_id ORDER BY admission_date, admission_id
+    ) AS previous_admission
+    FROM Admissions
+)
+SELECT *
+FROM x
+WHERE previous_admission IS NOT NULL
+  AND DATEDIFF(DAY, previous_admission, admission_date) <= 30;
