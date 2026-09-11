@@ -1,0 +1,36 @@
+USE WindowFunctionsPortfolio;
+GO
+
+/* 1. Compare ROW_NUMBER, RANK and DENSE_RANK */
+SELECT emp_name, department, salary,
+       ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC, emp_id) AS row_num,
+       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rank_num,
+       DENSE_RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dense_rank_num
+FROM Employees;
+
+/* 2. Second-highest salary employee(s) in each department */
+WITH ranked AS (
+    SELECT *, DENSE_RANK() OVER (
+        PARTITION BY department ORDER BY salary DESC
+    ) AS salary_rank
+    FROM Employees
+)
+SELECT emp_id, emp_name, department, salary
+FROM ranked
+WHERE salary_rank = 2;
+
+/* 3. Top 3 employees in every department */
+WITH ranked AS (
+    SELECT *, ROW_NUMBER() OVER (
+        PARTITION BY department ORDER BY salary DESC, emp_id
+    ) AS rn
+    FROM Employees
+)
+SELECT emp_id, emp_name, department, salary
+FROM ranked
+WHERE rn <= 3;
+
+/* 4. Quartile segmentation */
+SELECT emp_name, salary,
+       NTILE(4) OVER (ORDER BY salary DESC) AS salary_quartile
+FROM Employees;
