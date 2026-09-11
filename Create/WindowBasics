@@ -1,0 +1,18 @@
+USE WindowFunctionsPortfolio;
+GO
+
+/* 1. Average salary while retaining employee detail */
+SELECT emp_id, emp_name, department, salary,
+       AVG(salary) OVER (PARTITION BY department) AS department_avg_salary
+FROM Employees;
+
+/* 2. Employee count by department without collapsing rows */
+SELECT emp_id, emp_name, department,
+       COUNT(*) OVER (PARTITION BY department) AS department_employee_count
+FROM Employees;
+
+/* 3. Minimum and maximum salary by department */
+SELECT emp_name, department, salary,
+       MIN(salary) OVER (PARTITION BY department) AS min_dept_salary,
+       MAX(salary) OVER (PARTITION BY department) AS max_dept_salary
+FROM Employees;
