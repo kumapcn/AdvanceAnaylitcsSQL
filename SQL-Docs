@@ -1,0 +1,87 @@
+# Window Functions Interview Cheat Sheet
+
+## Core Definition
+
+A window function performs a calculation across a set of related rows while preserving row-level detail.
+
+## Syntax
+
+```sql
+FUNCTION() OVER (
+    PARTITION BY ...
+    ORDER BY ...
+    ROWS BETWEEN ... AND ...
+)
+```
+
+## Ranking
+
+| Function | Ties | Gaps |
+|---|---|---|
+| ROW_NUMBER | No shared rank | N/A |
+| RANK | Same rank | Yes |
+| DENSE_RANK | Same rank | No |
+| NTILE | Buckets | N/A |
+
+## Navigation
+
+- `LAG()` → previous row
+- `LEAD()` → next row
+- `FIRST_VALUE()` → first value in the window
+- `LAST_VALUE()` → last value, with careful frame specification
+
+## High-Value Interview Patterns
+
+### Latest record
+
+```sql
+ROW_NUMBER() OVER (
+    PARTITION BY entity_id
+    ORDER BY event_date DESC, event_id DESC
+)
+```
+
+### Top N per group
+
+```sql
+WITH x AS (
+    SELECT *, ROW_NUMBER() OVER (
+        PARTITION BY group_col ORDER BY metric DESC
+    ) rn
+    FROM t
+)
+SELECT * FROM x WHERE rn <= N;
+```
+
+### Running total
+
+```sql
+SUM(amount) OVER (
+    PARTITION BY account_id
+    ORDER BY transaction_date, transaction_id
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+)
+```
+
+### Previous value
+
+```sql
+LAG(metric) OVER (
+    PARTITION BY entity_id ORDER BY event_date
+)
+```
+
+## Consultant-Level Checklist
+
+Before finalizing a window-function query, ask:
+
+1. What is the business grain?
+2. What defines one partition?
+3. What is the correct ordering column?
+4. Is ordering deterministic when dates tie?
+5. Do ties need to share rank?
+6. Is a window frame required?
+7. Can the window result be filtered directly? If not, use a CTE/derived table.
+8. What happens with NULLs and zero denominators?
+9. Is the query scalable for the expected data volume?
+10. Can another developer understand the query six months later?
