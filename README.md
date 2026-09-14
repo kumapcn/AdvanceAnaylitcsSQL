@@ -1,6 +1,6 @@
 # AdvanceAnaylitcsSQL
 
-# SQL Window Functions — Interview & Real-World Analytics Project
+# SQL Window Functions- Real-World Analytics Project
 
 A portfolio-ready SQL project demonstrating **window functions from fundamentals to consultant-level scenarios** using realistic Banking, Sales, and Healthcare datasets.
 
